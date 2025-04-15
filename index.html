@@ -81,6 +81,7 @@
             background-color: #e4606d;
         }
     </style>
+    <script src="calculator.js"></script>
 </head>
 <body>
     <div class="calculator">
@@ -109,14 +110,5 @@
             <button onclick="appendToDisplay('.')">.</button>
         </div>
     </div>
-
-    <!-- Scripts moved here -->
-    <script src="calculator.js"></script>
-    <script>
-        const display = document.getElementById('display');
-        window.appendToDisplay = (value) => appendToDisplay(value, display);
-        window.clearDisplay = () => clearDisplay(display);
-        window.calculate = () => calculate(display);
-    </script>
 </body>
 </html>

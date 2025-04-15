@@ -1,24 +1,24 @@
 // calculator.js
-function appendToDisplay(value, display) {
+
+// Get the display element once when the script loads
+const display = document.getElementById('display');
+
+// Define the functions and attach them to the window object
+window.appendToDisplay = function(value) {
     display.value += value;
-}
+};
 
-function clearDisplay(display) {
+window.clearDisplay = function() {
     display.value = '';
-}
+};
 
-function calculate(display) {
+window.calculate = function() {
     try {
-        const expression = display.value;
+        // Replace × with * for proper evaluation
+        const expression = display.value.replace(/×/g, '*');
         const result = eval(expression);
         display.value = result;
     } catch (error) {
         display.value = 'Error';
     }
-}
-
-module.exports = {
-    appendToDisplay,
-    clearDisplay,
-    calculate
 };
