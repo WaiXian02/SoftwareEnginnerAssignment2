@@ -82,15 +82,15 @@
         }
     </style>
 
-    <!-- Change the script section to this: -->
+    <!-- ... other head elements ... -->
     <script src="calculator.js"></script>
     <script>
-        const display = document.getElementById('display');
-        
-        // These will be used by the buttons
-        window.appendToDisplay = (value) => appendToDisplay(value, display);
-        window.clearDisplay = () => clearDisplay(display);
-        window.calculate = () => calculate(display);
+        document.addEventListener('DOMContentLoaded', () => {
+            const display = document.getElementById('display');
+            window.appendToDisplay = (value) => appendToDisplay(value, display);
+            window.clearDisplay = () => clearDisplay(display);
+            window.calculate = () => calculate(display);
+        });
     </script>
 </head>
 <body>
