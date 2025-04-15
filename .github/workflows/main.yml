@@ -1,10 +1,10 @@
-name: CI/CD Pipeline (Test + Deploy)
+name: CI/CD Pipeline (Build → Test → Deploy)
 
 on:
   push:
-    branches: ["main"]  # Full CI/CD on main branch
-  pull_request:         # Only run tests on PRs
-  workflow_dispatch:    # Allow manual triggers
+    branches: ["main"]  # Full pipeline on main
+  pull_request:         # Only build/test on PRs
+  workflow_dispatch:    # Manual trigger option
 
 permissions:
   contents: read
@@ -16,31 +16,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # --- CI: BUILD & TEST (Runs on every push/PR) ---
-  test:
-    name: Build and Test
+  # ===== BUILD =====
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      # Setup Node.js (adjust for your project)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
       
-      # Install dependencies & run tests
-      - name: Install dependencies
-        run: npm install
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build  # Your build command
+
+  # ===== TEST =====
+  test:
+    name: Test
+    needs: build  # Requires build to succeed first
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       
-      - name: Run tests
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Run Tests
         run: npm test  # Fails pipeline if tests fail
 
-  # --- CD: DEPLOY (Only runs on main branch if tests pass) ---
+  # ===== DEPLOY =====
   deploy:
-    name: Deploy to GitHub Pages
-    needs: test  # Waits for test job to succeed
-    if: github.ref == 'refs/heads/main'  # Extra safety
+    name: Deploy
+    needs: test  # Requires test to succeed first
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -52,7 +65,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'dist/'  # Your build output directory
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
