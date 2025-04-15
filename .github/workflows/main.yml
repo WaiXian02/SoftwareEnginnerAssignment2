@@ -1,10 +1,10 @@
-name: CI/CD Pipeline (Test + Deploy)
+name: CI/CD Pipeline (Build → Test → Deploy)
 
 on:
   push:
-    branches: ["main"]  # Full CI/CD on main branch
-  pull_request:         # Only run tests on PRs
-  workflow_dispatch:    # Allow manual triggers
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,43 +16,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # --- CI: BUILD & TEST (Runs on every push/PR) ---
-  test:
-    name: Build and Test
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      # Setup Node.js (adjust for your project)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
       
-      # Install dependencies & run tests
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Run tests
-        run: npm test  # Fails pipeline if tests fail
+      - name: Install & Build
+        run: |
+          npm install
+          npm run build  # Creates dist/ folder
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: dist/
 
-  # --- CD: DEPLOY (Only runs on main branch if tests pass) ---
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-output
+          
+      - name: Run tests
+        run: npm test  # Tests source code (not built files)
+
   deploy:
-    name: Deploy to GitHub Pages
-    needs: test  # Waits for test job to succeed
-    if: github.ref == 'refs/heads/main'  # Extra safety
+    name: Deploy
+    needs: test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/download-artifact@v3
         with:
-          path: '.'
+          name: build-output
+          
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
