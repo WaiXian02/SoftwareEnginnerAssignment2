@@ -1,42 +1,57 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: CI/CD Pipeline (Test + Deploy)
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
+    branches: ["main"]  # Full CI/CD on main branch
+  pull_request:         # Only run tests on PRs
+  workflow_dispatch:    # Allow manual triggers
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  # --- CI: BUILD & TEST (Runs on every push/PR) ---
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Setup Node.js (adjust for your project)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      # Install dependencies & run tests
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Run tests
+        run: npm test  # Fails pipeline if tests fail
+
+  # --- CD: DEPLOY (Only runs on main branch if tests pass) ---
   deploy:
+    name: Deploy to GitHub Pages
+    needs: test  # Waits for test job to succeed
+    if: github.ref == 'refs/heads/main'  # Extra safety
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
           path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
