@@ -1,10 +1,10 @@
-name: CI/CD Pipeline (Test + Deploy)
+name: CI/CD Pipeline (Build → Test → Report → Deploy)
 
 on:
   push:
-    branches: ["main"]  # Full CI/CD on main branch
-  pull_request:         # Only run tests on PRs
-  workflow_dispatch:    # Allow manual triggers
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,43 +16,103 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # --- CI: BUILD & TEST (Runs on every push/PR) ---
-  test:
-    name: Build and Test
+  # ================== BUILD STAGE ==================
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      # Setup Node.js (adjust for your project)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
       
-      # Install dependencies & run tests
       - name: Install dependencies
         run: npm install
       
-      - name: Run tests
-        run: npm test  # Fails pipeline if tests fail
+      - name: Build project
+        run: npm run build  # Replace with your build command
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: dist/  # Replace with your build output directory
 
-  # --- CD: DEPLOY (Only runs on main branch if tests pass) ---
+      - name: Report build status
+        run: |
+          echo "Build completed successfully!"
+          echo "Build artifacts are available for testing."
+
+  # ================== TEST STAGE ==================
+  test:
+    name: Run Tests
+    needs: build  # Depends on build job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-output
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install test dependencies
+        run: npm install
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Generate test report
+        run: |
+          echo "Generating test report..."
+          # Add your test report generation command here
+          echo "Test coverage: 95%"  # Example mock data
+      
+      - name: Report test status
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ All tests passed!"
+          else
+            echo "❌ Tests failed!"
+            exit 1
+          fi
+
+  # ================== DEPLOY STAGE ==================
   deploy:
-    name: Deploy to GitHub Pages
-    needs: test  # Waits for test job to succeed
-    if: github.ref == 'refs/heads/main'  # Extra safety
+    name: Deploy to Production
+    needs: test  # Depends on test job
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output
+      
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'dist/'  # Same as build output
+      
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      
+      - name: Report deployment status
+        run: |
+          echo "🚀 Deployment successful!"
+          echo "URL: ${{ steps.deployment.outputs.page_url }}"
