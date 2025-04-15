@@ -5,6 +5,8 @@
     "jest": "^29.7.0"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "mkdir -p dist && cp *.html *.js *.css dist/",  # Copies web files
+    "prepare": "npm run build"  # Auto-runs build on install
   }
 }
