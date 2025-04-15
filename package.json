@@ -1,9 +1,10 @@
 {
-  "devDependencies": {
+  "name": "calculator",
+  "version": "1.0.0",
+  "dependencies": {
     "jest": "^29.7.0"
   },
-
-    "scripts": {
+  "scripts": {
     "test": "jest"
   }
 }

@@ -81,6 +81,17 @@
             background-color: #e4606d;
         }
     </style>
+
+    <!-- Change the script section to this: -->
+    <script src="calculator.js"></script>
+    <script>
+        const display = document.getElementById('display');
+        
+        // These will be used by the buttons
+        window.appendToDisplay = (value) => appendToDisplay(value, display);
+        window.clearDisplay = () => clearDisplay(display);
+        window.calculate = () => calculate(display);
+    </script>
 </head>
 <body>
     <div class="calculator">
@@ -109,25 +120,5 @@
             <button onclick="appendToDisplay('.')">.</button>
         </div>
     </div>
-
-    <script>
-        function appendToDisplay(value) {
-            document.getElementById('display').value += value;
-        }
-        
-        function clearDisplay() {
-            document.getElementById('display').value = '';
-        }
-        
-        function calculate() {
-            try {
-                const expression = document.getElementById('display').value;
-                const result = eval(expression);
-                document.getElementById('display').value = result;
-            } catch (error) {
-                document.getElementById('display').value = 'Error';
-            }
-        }
-    </script>
 </body>
 </html>
