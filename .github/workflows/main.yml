@@ -51,17 +51,21 @@ jobs:
         run: npm test  # Tests source code (not built files)
 
   deploy:
-    name: Deploy
-    needs: test
-    if: github.ref == 'refs/heads/main'
+    name: Deploy to GitHub Pages
+    needs: test  # Waits for test job to succeed
+    if: github.ref == 'refs/heads/main'  # Extra safety
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: build-output
-          
+          path: '.'
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
