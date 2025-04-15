@@ -6,7 +6,5 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "mkdir -p dist && cp *.html *.js *.css dist/",  # Copies web files
-    "prepare": "npm run build"  # Auto-runs build on install
   }
 }
