@@ -16,14 +16,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # --- CI: BUILD & TEST (Runs on every push/PR) ---
+   # --- CI: BUILD (Runs on every push/PR) ---
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Setup Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      # Install dependencies & run tests
+      - name: Install dependencies
+        run: npm install
+        
+  # --- CI: TEST (Runs on every push/PR) ---
   test:
     name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      # Setup Node.js (adjust for your project)
+      # Setup Node.js 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
