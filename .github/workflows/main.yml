@@ -35,7 +35,8 @@ jobs:
         
   # --- CI: TEST (Runs on every push/PR) ---
   test:
-    name: Build and Test
+    name: Test
+    needs: build  # Waits for build job to succeed
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
