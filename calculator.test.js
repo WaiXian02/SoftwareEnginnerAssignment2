@@ -24,11 +24,11 @@ describe('Calculator Functions', () => {
     test('calculate evaluates expressions correctly', () => {
         display.value = '2+2';
         calculate(display);
-        expect(display.value).toBe(4);
+        expect(display.value).toBe('4');
         
         display.value = '10/2';
         calculate(display);
-        expect(display.value).toBe(5);
+        expect(display.value).toBe('5');
     });
     
     test('calculate shows Error for invalid expressions', () => {
